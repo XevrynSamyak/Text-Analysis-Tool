@@ -45,6 +45,12 @@ void readLine(char buffer[], int size)
         buffer[strcspn(buffer, "\n")] = '\0';
     }
 }
+/*
+ * readLine: reads one line from stdin into buffer (max size-1 chars)
+ * and strips the trailing newline.
+ * Input: buffer - where the line is stored, size - capacity of buffer.
+ * Returns: nothing (buffer is left unchanged if reading fails).
+ */
 
 void readText(char destination[], int size)
 {
@@ -71,6 +77,13 @@ void readText(char destination[], int size)
         strcat(destination, "\n");
     }
 }
+/*
+ * readText: reads multi-line text from the user until a line containing
+ * only "END" is typed, appending each line (plus '\n') to destination.
+ * Stops early with a message if the size limit would be exceeded.
+ * Input: destination - buffer to fill, size - its capacity.
+ * Returns: nothing.
+ */
 
 int getChoice()
 {
@@ -88,6 +101,12 @@ int getChoice()
 
     return (int)choice;
 }
+/*
+ * getChoice: prompts for a menu choice and safely converts the input
+ * to an integer using strtol.
+ * Input: none (reads from stdin).
+ * Returns: the number entered, or -1 if the input isn't a valid integer.
+ */
 
 /* ---------- BASIC STRING FUNCTIONS ---------- */
 
@@ -98,16 +117,32 @@ int isVowel(char ch)
     return ch == 'a' || ch == 'e' || ch == 'i' ||
            ch == 'o' || ch == 'u';
 }
+/*
+ * isVowel: checks whether a character is a vowel (case-insensitive).
+ * Input: ch - the character to test.
+ * Returns: 1 if it is a, e, i, o or u; otherwise 0.
+ */
 
 int isWordChar(char ch)
 {
     return isalnum((unsigned char)ch);
 }
+/*
+ * isWordChar: checks whether a character can be part of a word
+ * (letter or digit).
+ * Input: ch - the character to test.
+ * Returns: non-zero if alphanumeric, otherwise 0.
+ */
 
 void removeNewline(char str[])
 {
     str[strcspn(str, "\n")] = '\0';
 }
+/*
+ * removeNewline: cuts the string at the first '\n', removing the newline.
+ * Input: str - the string to modify in place.
+ * Returns: nothing. (Note: not called anywhere in this program.)
+ */
 
 void toLowerString(char str[])
 {
@@ -116,6 +151,12 @@ void toLowerString(char str[])
     for (i = 0; str[i] != '\0'; i++)
         str[i] = (char)tolower((unsigned char)str[i]);
 }
+/*
+ * toLowerString: converts every character of a string to lowercase
+ * in place.
+ * Input: str - the string to convert.
+ * Returns: nothing.
+ */
 
 /* Extract words from text */
 int extractWords(const char source[], WordEntry words[])
@@ -157,6 +198,13 @@ int extractWords(const char source[], WordEntry words[])
 
     return count;
 }
+/*
+ * extractWords: splits text into words (runs of letters/digits), stores
+ * each one lowercased in the words array with count = 1. Words longer
+ * than WORD_LEN-1 are truncated; stops at MAX_WORDS words.
+ * Input: source - text to split, words - output array (size MAX_WORDS).
+ * Returns: the number of words extracted.
+ */
 
 /* ---------- STATISTICS ---------- */
 
@@ -235,6 +283,14 @@ void calculateStatistics(const char source[], Statistics *s)
         }
     }
 }
+/*
+ * calculateStatistics: scans the text once and fills a Statistics struct
+ * with counts of characters, letters, digits, spaces, punctuation,
+ * vowels, consonants, upper/lowercase letters, words, sentences
+ * (. ? !) and paragraphs (blocks of text separated by newlines).
+ * Input: source - text to analyse, s - struct to fill (zeroed first).
+ * Returns: nothing (results are written through s).
+ */
 
 /* ---------- WORD ANALYSIS ---------- */
 
@@ -264,6 +320,13 @@ void longestShortestWord(const char source[],
             strcpy(shortest, words[i].word);
     }
 }
+/*
+ * longestShortestWord: finds the longest and shortest word in the text
+ * (first one wins on ties; words are lowercase).
+ * Input: source - text to search, longest/shortest - output buffers
+ * (at least WORD_LEN chars each).
+ * Returns: nothing; both buffers are empty strings if there are no words.
+ */
 
 int uniqueWordCount(const char source[])
 {
@@ -291,6 +354,12 @@ int uniqueWordCount(const char source[])
 
     return unique;
 }
+/*
+ * uniqueWordCount: counts distinct words in the text, ignoring case.
+ * A word is unique if no earlier word matches it.
+ * Input: source - text to analyse.
+ * Returns: number of distinct words.
+ */
 
 void wordFrequency(const char source[])
 {
@@ -320,6 +389,13 @@ void wordFrequency(const char source[])
                    words[i].word, words[i].count);
     }
 }
+/*
+ * wordFrequency: counts how many times each word appears (case-insensitive)
+ * by merging repeats into the first occurrence, then prints each word
+ * with its count.
+ * Input: source - text to analyse.
+ * Returns: nothing (prints the table).
+ */
 
 /* ---------- ALPHABET ANALYSIS ---------- */
 
@@ -344,6 +420,12 @@ void alphabetFrequency(const char source[])
         printf("%c : %d\n", 'A' + i, frequency[i]);
     }
 }
+/*
+ * alphabetFrequency: counts how often each letter A-Z appears
+ * (case-insensitive) and prints all 26 counts.
+ * Input: source - text to analyse.
+ * Returns: nothing (prints the table).
+ */
 
 /* ---------- PALINDROME ---------- */
 
@@ -372,6 +454,13 @@ int isPalindrome(const char source[])
 
     return 1;
 }
+/*
+ * isPalindrome: checks whether the text reads the same forwards and
+ * backwards, ignoring case, spaces and punctuation, using two pointers
+ * moving inward.
+ * Input: source - text to check.
+ * Returns: 1 if it is a palindrome, 0 otherwise.
+ */
 
 /* ---------- ANAGRAM ---------- */
 
@@ -404,6 +493,13 @@ int isAnagram(const char first[], const char second[])
 
     return 1;
 }
+/*
+ * isAnagram: checks whether two strings contain exactly the same letters
+ * (ignoring case, spaces and non-letters) by adding counts for the first
+ * string and subtracting for the second; all counts must end at zero.
+ * Input: first, second - the strings to compare.
+ * Returns: 1 if they are anagrams, 0 otherwise.
+ */
 
 /* ---------- SEARCH WORD ---------- */
 
@@ -427,6 +523,12 @@ int searchWord(const char source[], const char target[])
 
     return matches;
 }
+/*
+ * searchWord: counts how many times a whole word appears in the text,
+ * ignoring case.
+ * Input: source - text to search, target - word to look for.
+ * Returns: number of matches (0 if none).
+ */
 
 /* ---------- REPLACE WORD ---------- */
 
@@ -502,6 +604,15 @@ void replaceWord(char source[], const char oldWord[],
 
     printf("%d occurrence(s) replaced.\n", replaced);
 }
+/*
+ * replaceWord: replaces every whole-word occurrence of oldWord
+ * (case-insensitive) with newWord, keeping punctuation and spacing
+ * as they were. Builds the new text in a temporary buffer, then copies
+ * it back over source and prints how many replacements were made.
+ * Input: source - text to modify in place, oldWord - word to find,
+ * newWord - replacement.
+ * Returns: nothing.
+ */
 
 /* ---------- REVERSE TEXT ---------- */
 
@@ -520,6 +631,12 @@ void reverseText(char source[])
         right--;
     }
 }
+/*
+ * reverseText: reverses the whole string character by character in place
+ * by swapping from both ends toward the middle.
+ * Input: source - the string to reverse.
+ * Returns: nothing.
+ */
 
 /* Reverse word order */
 void reverseWordOrder(const char source[])
@@ -566,6 +683,12 @@ void reverseWordOrder(const char source[])
 
     printf("\n");
 }
+/*
+ * reverseWordOrder: splits the text on whitespace and prints the words
+ * in reverse order on one line. Does not modify the original text.
+ * Input: source - text to process.
+ * Returns: nothing (prints the result).
+ */
 
 /* ---------- CASE CONVERSION ---------- */
 
@@ -605,6 +728,13 @@ void convertCase(const char source[], int mode)
 
     printf("\nConverted text:\n%s\n", result);
 }
+/*
+ * convertCase: prints a converted copy of the text; the original is not
+ * changed. Modes: 1 = UPPERCASE, 2 = lowercase, 3 = Title Case
+ * (first letter of each word capitalised, rest lowercase).
+ * Input: source - text to convert, mode - 1, 2 or 3.
+ * Returns: nothing (prints the result).
+ */
 
 /* ---------- CLEAN EXTRA SPACES ---------- */
 
@@ -642,6 +772,13 @@ void cleanSpaces(char source[])
 
     printf("Extra spaces removed.\n");
 }
+/*
+ * cleanSpaces: collapses any run of whitespace (spaces, tabs, newlines)
+ * into a single space and removes leading/trailing whitespace. Modifies
+ * the text in place, so line breaks are lost as well.
+ * Input: source - text to clean.
+ * Returns: nothing.
+ */
 
 /* ---------- DUPLICATE WORDS ---------- */
 
@@ -679,6 +816,12 @@ void duplicateWords(const char source[])
                    words[i].word, frequency);
     }
 }
+/*
+ * duplicateWords: prints every word that appears more than once,
+ * along with how many times it appears. Each word is reported only once.
+ * Input: source - text to analyse.
+ * Returns: nothing (prints the list).
+ */
 
 /* ---------- WRITING ANALYSIS ---------- */
 
@@ -722,6 +865,14 @@ void writingAnalysis(const char source[])
     printf("%d\n", questions);
     printf("Exclamations: %d\n", exclamations);
 }
+/*
+ * writingAnalysis: prints writing metrics: average word length (letters
+ * per word), average words per sentence, estimated reading time
+ * (assuming 200 words per minute), and the number of question marks
+ * and exclamation marks.
+ * Input: source - text to analyse.
+ * Returns: nothing (prints the analysis).
+ */
 
 /* ---------- TEXT COMPARISON ---------- */
 
@@ -789,6 +940,14 @@ void compareTexts()
     printf("Shared unique words: %d\n", shared);
     printf("Vocabulary similarity: %.2f%%\n", similarity);
 }
+/*
+ * compareTexts: asks the user to enter two separate texts, then compares
+ * their vocabulary. Prints each text's word count, the number of unique
+ * words they share, and a similarity percentage
+ * (shared / total unique words across both * 100, a Jaccard-style score).
+ * Input: none (reads both texts from stdin).
+ * Returns: nothing (prints the comparison).
+ */
 
 /* ---------- CLEANLINESS SCORE ---------- */
 
@@ -839,6 +998,14 @@ void cleanlinessScore(const char source[])
     else
         printf("Text needs significant cleanup.\n");
 }
+/*
+ * cleanlinessScore: gives the text a formatting score out of 100.
+ * Starts at 100 and deducts 5 for each repeated whitespace character,
+ * 5 for each repeated punctuation mark (like "!!"), and 15 if the
+ * average sentence is over 30 words. Prints the score and a verdict.
+ * Input: source - text to score.
+ * Returns: nothing (prints the score and message).
+ */
 
 /* ---------- REPORT ---------- */
 
@@ -884,6 +1051,13 @@ void printReport(const char source[])
 
     printf("========================================\n");
 }
+/*
+ * printReport: prints the full statistics report for the text: character
+ * counts, letter types, words, unique words, sentences, paragraphs,
+ * longest/shortest word and whether the whole text is a palindrome.
+ * Input: source - text to report on.
+ * Returns: nothing (prints the report).
+ */
 
 /* ---------- SAVE REPORT ---------- */
 
@@ -939,6 +1113,13 @@ void saveReport()
 
     printf("Report saved successfully!\n");
 }
+/*
+ * saveReport: asks for a filename and writes a text analysis report of
+ * the global text (the original text plus its statistics) to that file.
+ * Prints an error and returns if the file can't be created.
+ * Input: none (reads the filename from stdin, uses global text).
+ * Returns: nothing.
+ */
 
 /* ---------- LOAD TEXT ---------- */
 
@@ -972,6 +1153,13 @@ void loadFile()
 
     printf("Text loaded successfully!\n");
 }
+/*
+ * loadFile: asks for a filename and reads the file's contents into the
+ * global text buffer (up to MAX_TEXT-1 characters), replacing whatever
+ * was there. Prints an error and returns if the file can't be opened.
+ * Input: none (reads the filename from stdin).
+ * Returns: nothing.
+ */
 
 /* ---------- HISTORY ---------- */
 
@@ -995,6 +1183,13 @@ void addHistory()
         strcpy(history[HISTORY_SIZE - 1], text);
     }
 }
+/*
+ * addHistory: saves a copy of the current global text in the history
+ * list. If the list is full (HISTORY_SIZE entries), the oldest entry is
+ * dropped and the rest shift up. Does nothing if the text is empty.
+ * Input: none (uses global text).
+ * Returns: nothing.
+ */
 
 void showHistory()
 {
@@ -1013,6 +1208,12 @@ void showHistory()
         printf("%d. %.70s\n", i + 1, history[i]);
     }
 }
+/*
+ * showHistory: prints the saved history as a numbered list, showing only
+ * the first 70 characters of each entry. Prints a message if empty.
+ * Input: none (uses global history).
+ * Returns: nothing.
+ */
 
 /* ---------- MAIN MENU ---------- */
 
@@ -1043,6 +1244,11 @@ void displayMenu()
     printf("20. Exit\n");
     printf("========================================\n");
 }
+/*
+ * displayMenu: prints the LexiScan main menu with all 20 options.
+ * Input: none.
+ * Returns: nothing.
+ */
 
 int main()
 {
@@ -1196,3 +1402,11 @@ int main()
 
     return 0;
 }
+/*
+ * main: program entry point. Shows the menu in a loop, reads the user's
+ * choice and calls the matching function (statistics, searching,
+ * replacing, reversing, comparing, saving/loading, history, etc.) on the
+ * global text buffer. Menu option 20 exits the loop and ends the program.
+ * Input: none.
+ * Returns: 0 on normal exit.
+ */
