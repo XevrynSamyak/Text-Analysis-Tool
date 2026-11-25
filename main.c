@@ -1018,9 +1018,9 @@ void printReport(const char source[])
     calculateStatistics(source, &s);
     longestShortestWord(source, longest, shortest);
 
-    printf("\n========================================\n");
+    printf("\n__________________________________________\n");
     printf("          LEXISCAN REPORT\n");
-    printf("========================================\n");
+    printf("____________________________________________\n");
 
     printf("Characters (including spaces): %d\n", s.characters);
     printf("Characters (excluding spaces): %d\n",
@@ -1049,7 +1049,7 @@ void printReport(const char source[])
     printf("Palindrome: %s\n",
            isPalindrome(source) ? "Yes" : "No");
 
-    printf("========================================\n");
+    printf("___________________________________________\n");
 }
 /*
  * printReport: prints the full statistics report for the text: character
@@ -1085,7 +1085,7 @@ void saveReport()
     longestShortestWord(text, longest, shortest);
 
     fprintf(file, "LEXISCAN TEXT ANALYSIS REPORT\n");
-    fprintf(file, "=============================\n");
+    fprintf(file, "_________________________________\n");
     fprintf(file, "Original Text:\n%s\n\n", text);
 
     fprintf(file, "Characters: %d\n", s.characters);
@@ -1219,7 +1219,6 @@ void showHistory()
 
 void displayMenu()
 {
-    printf("\n========================================\n");
     printf("          LEXISCAN TEXT ANALYZER\n");
     printf("========================================\n");
     printf("1.  Enter new text\n");
@@ -1242,7 +1241,7 @@ void displayMenu()
     printf("18. Load text from file\n");
     printf("19. View analysis history\n");
     printf("20. Exit\n");
-    printf("========================================\n");
+    
 }
 /*
  * displayMenu: prints the LexiScan main menu with all 20 options.
