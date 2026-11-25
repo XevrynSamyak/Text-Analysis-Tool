@@ -44,6 +44,10 @@ void readLine(char buffer[], int size)
     {
         buffer[strcspn(buffer, "\n")] = '\0';
     }
+    else
+    {
+        buffer[0] = '\0';
+    }
 }
 /*
  * readLine: reads one line from stdin into buffer (max size-1 chars)
@@ -67,7 +71,7 @@ void readText(char destination[], int size)
         if (strcmp(line, "END") == 0)
             break;
 
-        if (strlen(destination) + strlen(line) + 2 >= size)
+        if (strlen(destination) + strlen(line) + 2 >= (size_t)size)
         {
             printf("Text limit reached.\n");
             break;
@@ -96,7 +100,8 @@ int getChoice()
 
     choice = strtol(input, &end, 10);
 
-    if (end == input || *end != '\0')
+    if (end == input || *end != '\0' ||
+        choice < 1 || choice > 20)
         return -1;
 
     return (int)choice;
@@ -130,7 +135,6 @@ int isWordChar(char ch)
 /*
  * isWordChar: checks whether a character can be part of a word
  * (letter or digit).
- * Input: ch - the character to test.
  * Returns: non-zero if alphanumeric, otherwise 0.
  */
 
@@ -164,7 +168,7 @@ int extractWords(const char source[], WordEntry words[])
     int count = 0;
     int i = 0, j;
 
-    while (source[i] != '\0')
+    while (source[i] != '\0' && count < MAX_WORDS)
     {
         while (source[i] != '\0' &&
                !isWordChar(source[i]))
@@ -191,9 +195,6 @@ int extractWords(const char source[], WordEntry words[])
         words[count].count = 1;
 
         count++;
-
-        if (count >= MAX_WORDS)
-            break;
     }
 
     return count;
@@ -213,6 +214,7 @@ void calculateStatistics(const char source[], Statistics *s)
     int i;
     int inWord = 0;
     int inParagraph = 0;
+    int previousWasNewline = 0;
 
     memset(s, 0, sizeof(Statistics));
 
@@ -276,18 +278,23 @@ void calculateStatistics(const char source[], Statistics *s)
                 s->paragraphs++;
                 inParagraph = 1;
             }
+
+            previousWasNewline = 0;
         }
         else if (ch == '\n')
         {
-            inParagraph = 0;
+            if (previousWasNewline)
+                inParagraph = 0;
+
+            previousWasNewline = 1;
         }
     }
 }
 /*
  * calculateStatistics: scans the text once and fills a Statistics struct
  * with counts of characters, letters, digits, spaces, punctuation,
- * vowels, consonants, upper/lowercase letters, words, sentences
- * (. ? !) and paragraphs (blocks of text separated by newlines).
+ * vowels, consonants, upper/lowercase, words, sentences (. ? !) and
+ * paragraphs (blocks separated by blank lines).
  * Input: source - text to analyse, s - struct to fill (zeroed first).
  * Returns: nothing (results are written through s).
  */
@@ -432,7 +439,10 @@ void alphabetFrequency(const char source[])
 int isPalindrome(const char source[])
 {
     int left = 0;
-    int right = strlen(source) - 1;
+    int right = (int)strlen(source) - 1;
+
+    if (right < 0)
+        return 0;
 
     while (left < right)
     {
@@ -472,17 +482,13 @@ int isAnagram(const char first[], const char second[])
     for (i = 0; first[i] != '\0'; i++)
     {
         if (isalpha((unsigned char)first[i]))
-        {
             frequency[tolower((unsigned char)first[i])]++;
-        }
     }
 
     for (i = 0; second[i] != '\0'; i++)
     {
         if (isalpha((unsigned char)second[i]))
-        {
             frequency[tolower((unsigned char)second[i])]--;
-        }
     }
 
     for (i = 0; i < 256; i++)
@@ -539,7 +545,7 @@ void replaceWord(char source[], const char oldWord[],
     char oldLower[WORD_LEN];
     char current[WORD_LEN];
 
-    int i = 0, j = 0;
+    int i = 0;
     int replaced = 0;
 
     strncpy(oldLower, oldWord, WORD_LEN - 1);
@@ -552,10 +558,9 @@ void replaceWord(char source[], const char oldWord[],
     {
         if (isWordChar(source[i]))
         {
-            int start = i;
             int k = 0;
 
-            while (isWordChar(source[i]))
+            while (source[i] != '\0' && isWordChar(source[i]))
             {
                 if (k < WORD_LEN - 1)
                     current[k++] = source[i];
@@ -569,28 +574,21 @@ void replaceWord(char source[], const char oldWord[],
             strcpy(lowerCurrent, current);
             toLowerString(lowerCurrent);
 
+            const char *replacement =
+                (strcmp(lowerCurrent, oldLower) == 0)
+                ? newWord : current;
+
             if (strcmp(lowerCurrent, oldLower) == 0)
-            {
-                if (strlen(result) + strlen(newWord) < MAX_TEXT)
-                    strcat(result, newWord);
-
                 replaced++;
-            }
-            else
-            {
-                if (strlen(result) + strlen(current) < MAX_TEXT)
-                    strcat(result, current);
-            }
 
-            j = i;
-            (void)start;
-            (void)j;
+            if (strlen(result) + strlen(replacement) < MAX_TEXT)
+                strcat(result, replacement);
         }
         else
         {
-            int length = strlen(result);
+            int length = (int)strlen(result);
 
-            if (length < MAX_TEXT - 2)
+            if (length < MAX_TEXT - 1)
             {
                 result[length] = source[i];
                 result[length + 1] = '\0';
@@ -619,7 +617,7 @@ void replaceWord(char source[], const char oldWord[],
 void reverseText(char source[])
 {
     int left = 0;
-    int right = strlen(source) - 1;
+    int right = (int)strlen(source) - 1;
 
     while (left < right)
     {
@@ -645,7 +643,7 @@ void reverseWordOrder(const char source[])
     int count = 0;
     int i = 0, j;
 
-    while (source[i] != '\0')
+    while (source[i] != '\0' && count < MAX_WORDS)
     {
         while (isspace((unsigned char)source[i]))
             i++;
@@ -656,19 +654,16 @@ void reverseWordOrder(const char source[])
         j = 0;
 
         while (source[i] != '\0' &&
-               !isspace((unsigned char)source[i]))
+       !isspace((unsigned char)source[i]))
         {
-            if (j < WORD_LEN - 1)
-                words[count][j++] = source[i];
+          if (j < WORD_LEN - 1)
+          words[count][j++] = source[i];
 
-            i++;
-        }
+          i++;
+     }
 
         words[count][j] = '\0';
         count++;
-
-        if (count >= MAX_WORDS)
-            break;
     }
 
     printf("\nReversed word order:\n");
@@ -744,7 +739,7 @@ void cleanSpaces(char source[])
     int i = 0, j = 0;
     int previousSpace = 1;
 
-    while (source[i] != '\0')
+    while (source[i] != '\0' && j < MAX_TEXT - 1)
     {
         if (isspace((unsigned char)source[i]))
         {
@@ -1053,10 +1048,10 @@ void printReport(const char source[])
 }
 /*
  * printReport: prints the full statistics report for the text: character
- * counts, letter types, words, unique words, sentences, paragraphs,
- * longest/shortest word and whether the whole text is a palindrome.
+ * counts, letter types, words, unique words, sentences, longest/shortest
+ * word and whether the whole text is a palindrome.
  * Input: source - text to report on.
- * Returns: nothing (prints the report).
+ * Returns: nothing.
  */
 
 /* ---------- SAVE REPORT ---------- */
@@ -1123,7 +1118,7 @@ void saveReport()
 
 /* ---------- LOAD TEXT ---------- */
 
-void loadFile()
+int loadFile()
 {
     FILE *file;
     char filename[100];
@@ -1138,7 +1133,7 @@ void loadFile()
     if (file == NULL)
     {
         printf("File not found.\n");
-        return;
+        return 0;
     }
 
     while ((ch = fgetc(file)) != EOF &&
@@ -1152,13 +1147,14 @@ void loadFile()
     fclose(file);
 
     printf("Text loaded successfully!\n");
+    return 1;
 }
 /*
  * loadFile: asks for a filename and reads the file's contents into the
  * global text buffer (up to MAX_TEXT-1 characters), replacing whatever
  * was there. Prints an error and returns if the file can't be opened.
  * Input: none (reads the filename from stdin).
- * Returns: nothing.
+ * Returns: 1 if loading succeeds, 0 if it fails.
  */
 
 /* ---------- HISTORY ---------- */
@@ -1185,8 +1181,8 @@ void addHistory()
 }
 /*
  * addHistory: saves a copy of the current global text in the history
- * list. If the list is full (HISTORY_SIZE entries), the oldest entry is
- * dropped and the rest shift up. Does nothing if the text is empty.
+ * list. If the list is full (HISTORY_SIZE entries), the oldest entry
+ * is dropped and the rest shift up. Does nothing if the text is empty.
  * Input: none (uses global text).
  * Returns: nothing.
  */
@@ -1219,35 +1215,39 @@ void showHistory()
 
 void displayMenu()
 {
-    printf("          LEXISCAN TEXT ANALYZER\n");
+    printf("\n========================================\n");
+    printf("             LEXISCAN\n");
+    printf("          TEXT ANALYZER MENU\n");
     printf("========================================\n");
-    printf("1.  Enter new text\n");
-    printf("2.  Complete text statistics\n");
-    printf("3.  Word frequency analysis\n");
-    printf("4.  Alphabet frequency analysis\n");
-    printf("5.  Palindrome checker\n");
-    printf("6.  Anagram checker\n");
-    printf("7.  Search a word\n");
-    printf("8.  Replace a word\n");
-    printf("9.  Reverse complete text\n");
-    printf("10. Reverse word order\n");
-    printf("11. Convert case\n");
-    printf("12. Remove extra spaces\n");
-    printf("13. Detect duplicate words\n");
-    printf("14. Writing analysis\n");
-    printf("15. Compare two texts\n");
-    printf("16. Text cleanliness score\n");
-    printf("17. Save report\n");
-    printf("18. Load text from file\n");
-    printf("19. View analysis history\n");
+    printf(" 1. Enter Text\n");
+    printf(" 2. View Text Statistics & Longest Word\n");
+    printf(" 3. Word Frequency\n");
+    printf(" 4. Letter Frequency\n");
+    printf(" 5. Check Palindrome\n");
+    printf(" 6. Check Anagram\n");
+    printf(" 7. Search for a Word\n");
+    printf(" 8. Replace a Word\n");
+    printf(" 9. Reverse Text\n");
+    printf("10. Reverse Word Order\n");
+    printf("11. Change Letter Case\n");
+    printf("12. Remove Extra Spaces\n");
+    printf("13. Find Duplicate Words\n");
+    printf("14. Writing Statistics\n");
+    printf("15. Compare Two Texts\n");
+    printf("16. Text Quality Score\n");
+    printf("17. Save Report\n");
+    printf("18. Load Text from File\n");
+    printf("19. View History\n");
     printf("20. Exit\n");
-    
+    printf("========================================\n");
 }
 /*
  * displayMenu: prints the LexiScan main menu with all 20 options.
  * Input: none.
  * Returns: nothing.
  */
+
+/* ---------- MAIN ---------- */
 
 int main()
 {
@@ -1314,6 +1314,12 @@ int main()
                 break;
 
             case 7:
+                if (strlen(text) == 0)
+                {
+                    printf("Please enter text first.\n");
+                    break;
+                }
+
                 printf("Enter word to search: ");
                 readLine(search, sizeof(search));
 
@@ -1322,6 +1328,12 @@ int main()
                 break;
 
             case 8:
+                if (strlen(text) == 0)
+                {
+                    printf("Please enter text first.\n");
+                    break;
+                }
+
                 printf("Word to replace: ");
                 readLine(oldWord, sizeof(oldWord));
 
@@ -1333,16 +1345,31 @@ int main()
                 break;
 
             case 9:
+                if (strlen(text) == 0)
+                {
+                    printf("Please enter text first.\n");
+                    break;
+                }
+
                 reverseText(text);
                 printf("Reversed text:\n%s\n", text);
                 addHistory();
                 break;
 
             case 10:
-                reverseWordOrder(text);
+                if (strlen(text) == 0)
+                    printf("Please enter text first.\n");
+                else
+                    reverseWordOrder(text);
                 break;
 
             case 11:
+                if (strlen(text) == 0)
+                {
+                    printf("Please enter text first.\n");
+                    break;
+                }
+
                 printf("1. Uppercase\n");
                 printf("2. Lowercase\n");
                 printf("3. Title Case\n");
@@ -1356,17 +1383,29 @@ int main()
                 break;
 
             case 12:
+                if (strlen(text) == 0)
+                {
+                    printf("Please enter text first.\n");
+                    break;
+                }
+
                 cleanSpaces(text);
                 printf("%s\n", text);
                 addHistory();
                 break;
 
             case 13:
-                duplicateWords(text);
+                if (strlen(text) == 0)
+                    printf("Please enter text first.\n");
+                else
+                    duplicateWords(text);
                 break;
 
             case 14:
-                writingAnalysis(text);
+                if (strlen(text) == 0)
+                    printf("Please enter text first.\n");
+                else
+                    writingAnalysis(text);
                 break;
 
             case 15:
@@ -1374,16 +1413,22 @@ int main()
                 break;
 
             case 16:
-                cleanlinessScore(text);
+                if (strlen(text) == 0)
+                    printf("Please enter text first.\n");
+                else
+                    cleanlinessScore(text);
                 break;
 
             case 17:
-                saveReport();
+                if (strlen(text) == 0)
+                    printf("Please enter text first.\n");
+                else
+                    saveReport();
                 break;
 
             case 18:
-                loadFile();
-                addHistory();
+                if (loadFile())
+                    addHistory();
                 break;
 
             case 19:
@@ -1395,7 +1440,7 @@ int main()
                 return 0;
 
             default:
-                printf("Invalid choice. Please try again.\n");
+                printf("Invalid choice. Please enter 1-20.\n");
         }
     }
 
