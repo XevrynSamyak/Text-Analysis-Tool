@@ -1159,10 +1159,9 @@ int loadFile()
 
 /* ---------- HISTORY ---------- */
 
-void addHistory()
+void addHistory(const char *text)
 {
-    if (strlen(text) == 0)
-        return;
+    int i;
 
     if (historyCount < HISTORY_SIZE)
     {
@@ -1171,10 +1170,10 @@ void addHistory()
     }
     else
     {
-        int i;
-
-        for (i = 1; i < HISTORY_SIZE; i++)
-            strcpy(history[i - 1], history[i]);
+        for (i = 0; i < HISTORY_SIZE - 1; i++)
+        {
+            strcpy(history[i], history[i + 1]);
+        }
 
         strcpy(history[HISTORY_SIZE - 1], text);
     }
@@ -1187,11 +1186,13 @@ void addHistory()
  * Returns: nothing.
  */
 
-void showHistory()
+ void showHistory()
 {
     int i;
 
-    printf("\n--- ANALYSIS HISTORY ---\n");
+    printf("\n========================================\n");
+    printf("          ANALYSIS HISTORY\n");
+    printf("========================================\n");
 
     if (historyCount == 0)
     {
@@ -1201,13 +1202,19 @@ void showHistory()
 
     for (i = 0; i < historyCount; i++)
     {
-        printf("%d. %.70s\n", i + 1, history[i]);
+        printf("\nHistory Entry %d:\n", i + 1);
+        printf("----------------------------------------\n");
+        printf("%s\n", history[i]);
     }
+
+    printf("\n========================================\n");
 }
+
 /*
- * showHistory: prints the saved history as a numbered list, showing only
- * the first 70 characters of each entry. Prints a message if empty.
- * Input: none (uses global history).
+ * showHistory: displays all saved text entries in the analysis history.
+ * If there are no entries, it displays a message and returns.
+ * Each history entry is numbered and displayed in full without truncation.
+ * Input: none (uses the global history array and historyCount).
  * Returns: nothing.
  */
 
@@ -1269,7 +1276,7 @@ int main()
         {
             case 1:
                 readText(text, MAX_TEXT);
-                addHistory();
+                addHistory(text);
                 printf("Text saved in memory.\n");
                 break;
 
@@ -1341,7 +1348,7 @@ int main()
                 readLine(newWord, sizeof(newWord));
 
                 replaceWord(text, oldWord, newWord);
-                addHistory();
+                addHistory(text);
                 break;
 
             case 9:
@@ -1353,7 +1360,7 @@ int main()
 
                 reverseText(text);
                 printf("Reversed text:\n%s\n", text);
-                addHistory();
+                addHistory(text);
                 break;
 
             case 10:
@@ -1391,7 +1398,7 @@ int main()
 
                 cleanSpaces(text);
                 printf("%s\n", text);
-                addHistory();
+                addHistory(text);
                 break;
 
             case 13:
@@ -1428,7 +1435,7 @@ int main()
 
             case 18:
                 if (loadFile())
-                    addHistory();
+                    addHistory(text);
                 break;
 
             case 19:
