@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LexiScan Text Analyzer</title>
+<meta name="description" content="Paste text and get the full LexiScan analysis: counts, word and letter frequency, checks, edits, comparison and quality score. Runs in your browser, with the C source.">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='6' y='3' width='20' height='26' rx='3' fill='%23B98A55'/%3E%3Cpath d='M12 9v13h8' fill='none' stroke='%231F1C19' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/librefranklin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css?v=3">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-text" viewBox="0 0 24 24"><path d="M6 3.5h8.5L19 8v12.5H6z"/><path d="M14.5 3.5V8H19M9 12.5h7M9 16h7"/></symbol>
+    <symbol id="i-report" viewBox="0 0 24 24"><path d="M4.5 4.5h15v15h-15z"/><path d="M4.5 10h15M10 10v9.5"/></symbol>
+    <symbol id="i-words" viewBox="0 0 24 24"><path d="M4 7h9M4 12h16M4 17h11"/></symbol>
+    <symbol id="i-checks" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.4l2.6 2.6 4.8-5.4"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20l.9-4L16.5 4.4a1.6 1.6 0 0 1 2.3 0l.8.8a1.6 1.6 0 0 1 0 2.3L8 19.1z"/><path d="M14.5 6.5l3 3"/></symbol>
+    <symbol id="i-writing" viewBox="0 0 24 24"><path d="M5.5 19.5v-7M12 19.5v-14M18.5 19.5v-9"/></symbol>
+    <symbol id="i-compare" viewBox="0 0 24 24"><path d="M4 5h7v14H4zM13 5h7v14h-7z"/></symbol>
+    <symbol id="i-source" viewBox="0 0 24 24"><path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M5 19h14"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4.5V15M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4.5v4.2h4.2M12 8v4.3l2.8 1.8"/></symbol>
+    <symbol id="i-sample" viewBox="0 0 24 24"><path d="M9 4.5h6v3H9z"/><path d="M15 5.5h2.5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1H9"/></symbol>
+    <symbol id="i-clear" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><path d="M9 9h10.5v11H9z"/><path d="M5 15V4h10.5"/></symbol>
+    <symbol id="i-yes" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-no" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+
+<aside class="rail">
+  <a class="mark" href="#analyzer" aria-label="LexiScan, top of page">
+    <span class="sort" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M11.5 8v15h9" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="name">LexiScan</span>
+  </a>
+  <nav aria-label="Tools">
+    <ul>
+      <li><a href="#analyzer" data-spy="analyzer"><svg class="ic"><use href="#i-text"/></svg>Analyzer</a></li>
+      <li><a href="#report" data-spy="report"><svg class="ic"><use href="#i-report"/></svg>Report</a></li>
+      <li><a href="#words" data-spy="words"><svg class="ic"><use href="#i-words"/></svg>Words</a></li>
+      <li><a href="#checks" data-spy="checks"><svg class="ic"><use href="#i-checks"/></svg>Checks</a></li>
+      <li><a href="#edit" data-spy="edit"><svg class="ic"><use href="#i-edit"/></svg>Edit</a></li>
+      <li><a href="#writing" data-spy="writing"><svg class="ic"><use href="#i-writing"/></svg>Writing</a></li>
+      <li><a href="#compare" data-spy="compare"><svg class="ic"><use href="#i-compare"/></svg>Compare</a></li>
+      <li><a href="#source" data-spy="source"><svg class="ic"><use href="#i-source"/></svg>Source</a></li>
+    </ul>
+  </nav>
+  <p class="credit">Written in C by Samyak Jain</p>
+</aside>
+
+<main>
+
+<section id="analyzer" class="sec first" aria-labelledby="h-analyzer">
+  <h1 id="h-analyzer" class="lede">Paste text. Every number on this page is computed by the same rules as <a href="#source">Word_A.c</a>.</h1>
+
+  <div class="bench">
+    <div class="panel text-panel">
+      <div class="bar">
+        <div class="grp">
+          <button class="btn" type="button" id="load"><svg class="ic"><use href="#i-upload"/></svg>Load</button>
+          <button class="btn" type="button" id="sample"><svg class="ic"><use href="#i-sample"/></svg>Sample</button>
+          <div class="pop-wrap">
+            <button class="btn" type="button" id="hist-btn" aria-haspopup="true" aria-expanded="false" aria-controls="hist"><svg class="ic"><use href="#i-history"/></svg>History</button>
+            <div class="pop" id="hist" hidden>
+              <ul id="hist-list"></ul>
+            </div>
+          </div>
+        </div>
+        <div class="grp">
+          <button class="btn" type="button" id="clear"><svg class="ic"><use href="#i-clear"/></svg>Clear</button>
+          <button class="btn primary" type="button" id="save"><svg class="ic"><use href="#i-download"/></svg>Save report</button>
+        </div>
+      </div>
+      <div class="editor">
+        <div class="mirror" id="mirror" aria-hidden="true"></div>
+        <label class="sr" for="text">Text to analyze</label>
+        <textarea id="text" class="ta" spellcheck="false" placeholder="Paste or type text here. Results update as you type."></textarea>
+      </div>
+      <div class="foot">
+        <span id="bytes" class="count">0 / 4,999 bytes</span>
+        <span id="note" class="note" role="status"></span>
+      </div>
+      <input type="file" id="file" accept=".txt,.md,.c,.csv,text/*" hidden>
+    </div>
+
+    <div class="case-frame" aria-labelledby="h-case">
+      <div class="case-head">
+        <h2 id="h-case">Letters</h2>
+        <p id="case-sum" class="case-sum">No letters yet</p>
+      </div>
+      <div class="case" id="case" role="list" aria-label="Letter frequency, A to Z"></div>
+    </div>
+  </div>
+</section>
+
+<section id="report" class="sec" aria-labelledby="h-report">
+  <div class="sec-head">
+    <h2 id="h-report">Report</h2>
+    <button class="btn" type="button" id="copy-report"><svg class="ic"><use href="#i-copy"/></svg>Copy report</button>
+  </div>
+  <div class="panel figures">
+    <div>
+      <h3>Characters</h3>
+      <dl>
+        <div><dt>Including spaces</dt><dd data-f="characters">0</dd></div>
+        <div><dt>Excluding spaces</dt><dd data-f="charactersNoSpaces">0</dd></div>
+        <div><dt>Spaces</dt><dd data-f="spaces">0</dd></div>
+        <div><dt>Digits</dt><dd data-f="digits">0</dd></div>
+        <div><dt>Punctuation</dt><dd data-f="punctuation">0</dd></div>
+      </dl>
+    </div>
+    <div>
+      <h3>Letters</h3>
+      <dl>
+        <div><dt>Alphabetic</dt><dd data-f="alphabets">0</dd></div>
+        <div><dt>Vowels</dt><dd data-f="vowels">0</dd></div>
+        <div><dt>Consonants</dt><dd data-f="consonants">0</dd></div>
+        <div><dt>Uppercase</dt><dd data-f="uppercase">0</dd></div>
+        <div><dt>Lowercase</dt><dd data-f="lowercase">0</dd></div>
+      </dl>
+    </div>
+    <div>
+      <h3>Text</h3>
+      <dl>
+        <div><dt>Words</dt><dd data-f="words">0</dd></div>
+        <div><dt>Unique words</dt><dd data-f="unique">0</dd></div>
+        <div><dt>Sentences</dt><dd data-f="sentences">0</dd></div>
+        <div><dt>Paragraphs</dt><dd data-f="paragraphs">0</dd></div>
+        <div><dt>Longest word</dt><dd data-f="longest" class="word">N/A</dd></div>
+        <div><dt>Shortest word</dt><dd data-f="shortest" class="word">N/A</dd></div>
+        <div><dt>Whole text is a palindrome</dt><dd data-f="palindrome">No</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section id="words" class="sec" aria-labelledby="h-words">
+  <div class="sec-head"><h2 id="h-words">Words</h2></div>
+  <div class="two">
+    <div class="panel freq">
+      <div class="panel-head">
+        <h3>Word frequency</h3>
+        <div class="seg" role="group" aria-label="Sort order">
+          <button type="button" data-sort="count" aria-pressed="true">Most frequent</button>
+          <button type="button" data-sort="order" aria-pressed="false">As written</button>
+        </div>
+      </div>
+      <ol class="rows" id="freq-list"></ol>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <h3>Search</h3>
+        <label class="sr" for="search">Word to search for</label>
+        <input class="field" id="search" type="text" autocomplete="off" spellcheck="false" placeholder="Whole word, any case">
+        <p class="result"><strong id="search-n">0</strong><span id="search-l">occurrences</span></p>
+        <p class="hint">Matches are marked in the text above.</p>
+      </div>
+      <div class="panel">
+        <h3>Replace</h3>
+        <div class="pair">
+          <div><label class="sr" for="rep-old">Word to replace</label><input class="field" id="rep-old" type="text" autocomplete="off" spellcheck="false" placeholder="Replace"></div>
+          <div><label class="sr" for="rep-new">Replacement</label><input class="field" id="rep-new" type="text" autocomplete="off" spellcheck="false" placeholder="With"></div>
+        </div>
+        <div class="act">
+          <button class="btn primary" type="button" id="rep-go">Replace all</button>
+          <span id="rep-msg" class="msg" role="status"></span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Repeated words</h3>
+        <ul class="rows tight" id="dup-list"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="checks" class="sec" aria-labelledby="h-checks">
+  <div class="sec-head"><h2 id="h-checks">Checks</h2></div>
+  <div class="two even">
+    <div class="panel">
+      <h3>Palindrome</h3>
+      <label class="sr" for="pal">Word or sentence</label>
+      <input class="field" id="pal" type="text" autocomplete="off" spellcheck="false" placeholder="A word or a sentence">
+      <p class="verdict" id="pal-out" data-state="idle"><svg class="ic"><use href="#i-yes"/></svg><span>Type something to check</span></p>
+      <p class="hint">Ignores case, spaces and punctuation.</p>
+    </div>
+    <div class="panel">
+      <h3>Anagram</h3>
+      <div class="pair">
+        <div><label class="sr" for="ana-a">First word</label><input class="field" id="ana-a" type="text" autocomplete="off" spellcheck="false" placeholder="First word"></div>
+        <div><label class="sr" for="ana-b">Second word</label><input class="field" id="ana-b" type="text" autocomplete="off" spellcheck="false" placeholder="Second word"></div>
+      </div>
+      <p class="verdict" id="ana-out" data-state="idle"><svg class="ic"><use href="#i-yes"/></svg><span>Type two words to compare</span></p>
+      <p class="hint">Compares letters only, ignoring case and spaces.</p>
+    </div>
+  </div>
+</section>
+
+<section id="edit" class="sec" aria-labelledby="h-edit">
+  <div class="sec-head"><h2 id="h-edit">Edit</h2></div>
+  <div class="panel edit">
+    <div class="edit-bar">
+      <div class="seg" role="group" aria-label="Edit operation">
+        <button type="button" data-op="reverse" aria-pressed="true">Reverse text</button>
+        <button type="button" data-op="words" aria-pressed="false">Reverse word order</button>
+        <button type="button" data-op="case" aria-pressed="false">Change case</button>
+        <button type="button" data-op="clean" aria-pressed="false">Remove extra spaces</button>
+      </div>
+      <div class="seg" id="case-seg" role="group" aria-label="Case" hidden>
+        <button type="button" data-case="1" aria-pressed="true">UPPERCASE</button>
+        <button type="button" data-case="2" aria-pressed="false">lowercase</button>
+        <button type="button" data-case="3" aria-pressed="false">Title Case</button>
+      </div>
+    </div>
+    <label class="sr" for="edit-out">Result</label>
+    <textarea class="out" id="edit-out" readonly placeholder="The result appears here."></textarea>
+    <div class="act">
+      <button class="btn primary" type="button" id="edit-apply">Use as text</button>
+      <button class="btn" type="button" id="edit-copy"><svg class="ic"><use href="#i-copy"/></svg>Copy</button>
+    </div>
+  </div>
+</section>
+
+<section id="writing" class="sec" aria-labelledby="h-writing">
+  <div class="sec-head"><h2 id="h-writing">Writing</h2></div>
+  <div class="two even">
+    <div class="panel">
+      <h3>Analysis</h3>
+      <dl class="big">
+        <div><dt>Average word length</dt><dd><span id="w-awl">0.00</span> <small>letters</small></dd></div>
+        <div><dt>Words per sentence</dt><dd id="w-wps">0.00</dd></div>
+        <div><dt>Reading time</dt><dd><span id="w-rt">0.00</span> <small>minutes</small></dd></div>
+        <div><dt>Questions</dt><dd id="w-q">0</dd></div>
+        <div><dt>Exclamations</dt><dd id="w-e">0</dd></div>
+      </dl>
+      <p class="hint">Reading time assumes 200 words a minute.</p>
+    </div>
+    <div class="panel score">
+      <h3>Text quality</h3>
+      <p class="mega"><strong id="q-score">100</strong><span>/ 100</span></p>
+      <p class="q-verdict" id="q-verdict">Excellent text formatting!</p>
+      <dl class="big small">
+        <div><dt>Repeated whitespace, 5 each</dt><dd id="q-sp">0</dd></div>
+        <div><dt>Repeated punctuation, 5 each</dt><dd id="q-pu">0</dd></div>
+        <div><dt>Sentences averaging over 30 words, 15</dt><dd id="q-ls">No</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section id="compare" class="sec" aria-labelledby="h-compare">
+  <div class="sec-head"><h2 id="h-compare">Compare</h2></div>
+  <div class="panel cmp">
+    <div class="cmp-in">
+      <div>
+        <div class="cmp-top"><label for="cmp-a">First text</label><button class="btn small" type="button" id="cmp-use">Use the text above</button></div>
+        <textarea class="out in" id="cmp-a" spellcheck="false"></textarea>
+      </div>
+      <div>
+        <div class="cmp-top"><label for="cmp-b">Second text</label></div>
+        <textarea class="out in" id="cmp-b" spellcheck="false"></textarea>
+      </div>
+    </div>
+    <dl class="big row4">
+      <div><dt>Words in first</dt><dd id="c-1">0</dd></div>
+      <div><dt>Words in second</dt><dd id="c-2">0</dd></div>
+      <div><dt>Shared unique words</dt><dd id="c-s">0</dd></div>
+      <div><dt>Vocabulary similarity</dt><dd><span id="c-p">0.00</span><small>%</small></dd></div>
+    </dl>
+    <p class="shared" id="c-list"></p>
+  </div>
+</section>
+
+<section id="source" class="sec" aria-labelledby="h-source">
+  <div class="sec-head">
+    <h2 id="h-source">Source</h2>
+    <div class="grp">
+      <button class="btn" type="button" id="copy-build"><svg class="ic"><use href="#i-copy"/></svg>Copy build command</button>
+      <a class="btn primary" href="source/Word_A.c" download="Word_A.c"><svg class="ic"><use href="#i-download"/></svg>Download Word_A.c</a>
+    </div>
+  </div>
+  <div class="panel src">
+    <div class="src-meta" id="src-meta"></div>
+    <div class="src-body">
+      <nav class="fn" aria-label="Functions"><ol id="fn-list"></ol></nav>
+      <div class="code" id="code" tabindex="0" role="region" aria-label="Word_A.c source code"></div>
+    </div>
+  </div>
+</section>
+
+<footer class="end">
+  <p>LexiScan by Samyak Jain. The analysis on this page runs in your browser and nothing is uploaded.</p>
+</footer>
+
+</main>
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/source.js"></script>
+<script src="js/app.js?v=2"></script>
+</body>
+</html>
